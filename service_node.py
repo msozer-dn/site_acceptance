@@ -17,6 +17,7 @@ from ncclient import manager
 from botocore.exceptions import ClientError
 from ncclient.xml_ import to_ele
 from requests.structures import CaseInsensitiveDict
+from prettytable import PrettyTable
 
 directory="/Users/muhammedsozer/Documents/AcceptanceAutomation/logs"
 logging.basicConfig(level=logging.INFO,
@@ -209,8 +210,6 @@ class ServiceNode():
 
     def validate_cluster_type(self,expected_cluster_type:str=expected_cluster_type):
         rpc_reply = self.connection.get(("subtree",filters.filter_cluster_version))
-        import pdb
-        pdb.set_trace()
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
             cluster_type=dicdata['nc:rpc-reply']['data']['dn-top:drivenets-top']['dn-system:system']['oper-items']['system-type']
@@ -1440,7 +1439,7 @@ class ToR():
         structured_output=xmltodict.parse(output)
         print(structured_output)
         
-    def validate_lldp_info(self,site_id):
+    def validate_lldp_info(self,table,site_id,):
         output=self.ssh_connection.send_command("show lldp neighbors | display xml")
         structured_output=xmltodict.parse(output)
         lldp=structured_output['rpc-reply']['lldp-neighbors-information']['lldp-neighbor-information']
@@ -1449,43 +1448,45 @@ class ToR():
             if tor_fw_port_mapping.get(interface['lldp-local-port-id']):
                 result[interface['lldp-local-port-id']]={}
                 if tor_fw_port_mapping[interface['lldp-local-port-id']] + site_id == interface['lldp-remote-system-name']:
-                    result[interface['lldp-local-port-id']]['status']='success'
+                    result[interface['lldp-local-port-id']]['status']='SUCCESS: '
                     result[interface['lldp-local-port-id']]['message']=f'Tor to FW connection for interface {interface["lldp-local-port-id"]} '\
                                                                        f'is to {interface["lldp-remote-system-name"]} as expeceted'
-                    output=result[interface['lldp-local-port-id']]['message']
-                    print('SUCCESS: ' + output)
-
-                    with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                        result_file.write (time.asctime() + " " + output + '\n')
+                    # output=result[interface['lldp-local-port-id']]['status']+ result[interface['lldp-local-port-id']]['message']
+                    table.add_row([time.asctime(),result[interface['lldp-local-port-id']]['status'],result[interface['lldp-local-port-id']]['message']])
+                    with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                        result_file.write(table.get_string())
                 else:
-                    result[interface['lldp-local-port-id']]['status']='failure'
+                    result[interface['lldp-local-port-id']]['status']='FAILURE: '
                     result[interface['lldp-local-port-id']]['message']=f'Tor to FW connection for interface {interface["lldp-local-port-id"]} '\
                                                                        f'is to {interface["lldp-remote-system-name"]} which is not expeceted.' \
                                                                         'Please check the cabling between ToR and FW'
-                    output=result[interface['lldp-local-port-id']]['message']
-                    print('FAILURE: ' + output)
-
-                    with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                        result_file.write (time.asctime() + " " + output + '\n')
+                    # output=result[interface['lldp-local-port-id']]['status']+ result[interface['lldp-local-port-id']]['message']
+                    table.add_row([time.asctime(),result[interface['lldp-local-port-id']]['status'],result[interface['lldp-local-port-id']]['message']])
+                    # print(output)
+                    with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                        result_file.write(table.get_string())
         for tor_interface in tor_fw_port_mapping:
             if not tor_interface in result:
                 result[tor_interface]={}
-                result[tor_interface]['status']='failure'
+                result[tor_interface]['status']='FAILURE: '
                 result[tor_interface]['message']=f'{tor_interface} is not conneted to the FW. Please check cabling'
-                output=result[tor_interface]['message']
-                print('FAILURE: ' + output)
-                with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                    result_file.write (time.asctime() + " " + output + '\n')
+                # output=result[interface['lldp-local-port-id']]['status']+ result[interface['lldp-local-port-id']]['message']
+                table.add_row([time.asctime(),result[interface['lldp-local-port-id']]['status'],result[interface['lldp-local-port-id']]['message']])
+                # print(output)
+                with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                    result_file.write(table.get_string())
+        
         if not result:
             result["ToR to FW connections"]={}
-            result["ToR to FW connections"]['status']='failure'
+            result["ToR to FW connections"]['status']='FAILURE: '
             result["ToR to FW connections"]['message']=f'Tor to FW is not completed on expected interfaces. Please check the cabling between ToR and FW'
-            output=result["ToR to FW connections"]['message']
-            print('FAILURE: ' + output)
-            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/site_acceptance/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                result_file.write (time.asctime() + " " + output + '\n')
-
-    def validate_lacp(self):
+            # output=result[interface['lldp-local-port-id']]['status']+ result[interface['lldp-local-port-id']]['message']
+            table.add_row([time.asctime(),result[interface['lldp-local-port-id']]['status'],result[interface['lldp-local-port-id']]['message']])
+            # print(output)
+            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/site_acceptance/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                result_file.write(table.get_string())
+        return table
+    def validate_lacp(self,table):
         output=self.ssh_connection.send_command("show lacp interfaces | display xml")
         structured_output=xmltodict.parse(output)
         lacp=structured_output['rpc-reply']['lacp-interface-information-list']['lacp-interface-information']
@@ -1497,94 +1498,124 @@ class ToR():
                     if interface['name'] in ['ge-0/0/1','ge-1/0/1']:
                         result[l['lag-lacp-header']['aggregate-name']][interface['name']]={}
                         if interface['lacp-mux-state'] == 'Collecting distributing' :
-                            result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='success'
+                            result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='SUCCESS: '
                             result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']=f"Interface {interface['name']} is in {interface['lacp-mux-state']}"\
                                                                                                                     f"and member of {l['lag-lacp-header']['aggregate-name']} "
-                            output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
-                            print('SUCCESS: ' + output)
-                            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                                result_file.write (time.asctime() + " " + output + '\n')
+                            # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+ \
+                            #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
+                            table.add_row([time.asctime(),
+                                          result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status'],
+                                          result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']])
+                            # print(output)
+                            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                                result_file.write(table.get_string())
                         else:
-                            result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='failure'
+                            result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='FAILURE: '
                             result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']=f"Interface {interface['name']} is  member of {l['lag-lacp-header']['aggregate-name']}"\
                                                                                                                  f"but it is in {interface['lacp-mux-state']} which is not expected"
-                            output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
-                            print('FAILURE: ' + output)
-                            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                                result_file.write (time.asctime() + " " + output + '\n')
+                            # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+\
+                            #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
+                            table.add_row(time.asctime(),
+                                          result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status'],
+                                          result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message'])
+                            # print(output)
+                            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                                result_file.write (table.get_string())
                     else:
                         result[l['lag-lacp-header']['aggregate-name']][interface['name']]={}
-                        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='failure'
+                        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='FAILURE: '
                         result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']=f"Interface {interface['name']} is  member of {l['lag-lacp-header']['aggregate-name']}"\
                                                                                                                   " which is not one of the expected members"
-                        output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
-                        print('FAILURE: ' + output)
-                        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                            result_file.write (time.asctime() + " " + output + '\n')
+                        # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+\
+                        #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
+                        table.add_row(time.asctime(),
+                                      result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status'],
+                                      result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message'])
+                        # print(output)
+                        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                            result_file.write(table.get_string())
             elif l['lag-lacp-header'].get('aggregate-name')=='ae1':
                 result[l['lag-lacp-header']['aggregate-name']]={}
                 for interface in l['lag-lacp-protocol']:
                     if interface['name'] in ['ge-0/0/2','ge-1/0/2']:
                         result[l['lag-lacp-header']['aggregate-name']][interface['name']]={}
                         if interface['lacp-mux-state'] == 'Collecting distributing' :
-                            result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='success'
+                            result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='SUCCESS: '
                             result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']=f"Interface {interface['name']} is in {interface['lacp-mux-state']}"\
                                                                                                                     f"and member of {l['lag-lacp-header']['aggregate-name']} "
-                            output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
-                            print('SUCCESS: ' + output)
-                            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                                result_file.write (time.asctime() + " " + output + '\n')
+                            # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+\
+                            #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
+                            # print(output)
+                            table.add_row([time.asctime(),
+                                          result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status'],
+                                          result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']])                            
+                            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                                result_file.write(table.get_string())
                         else:
-                            result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='failure'
+                            result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='FAILURE: '
                             result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']=f"Interface {interface['name']} is  member of {l['lag-lacp-header']['aggregate-name']}"\
                                                                                                                  f"but it is in {interface['lacp-mux-state']} which is not expected"
-                            output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
-                            print('FAILURE: ' + output)
-                            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                                result_file.write (time.asctime() + " " + output + '\n')
+                            # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+\
+                            #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
+                            # print(output)
+                            table.add_row([time.asctime(),
+                                          result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status'],
+                                          result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']])
+                            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                                result_file.write (table.get_string())
                     else:
-                        result[l['lag-lacp-header']['aggregate-name']][interface['name']]={}
-                        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='failure'
+                        result[l['lag-lacp-header']['aggregate-name']][interface['name']]={} 
+                        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']='FAILURE: '
                         result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']=f"Interface {interface['name']} is  member of {l['lag-lacp-header']['aggregate-name']}"
-                        output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
-                        print('FAILURE: ' + output)
-                        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                            result_file.write (time.asctime() + " " + output + '\n')
+                        # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+\
+                        #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
+                        # print(output)
+                        table.add_row([time.asctime(),
+                                      result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status'],
+                                      result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']])
+                        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                            result_file.write (table.get_string())
 
             else:
                 result[l['lag-lacp-header']['aggregate-name']]={}
-                result[l['lag-lacp-header']['aggregate-name']]['status']='failure'
+                result[l['lag-lacp-header']['aggregate-name']]['status']='FAILURE: '
                 result[l['lag-lacp-header']['aggregate-name']]['message']=f"{l['lag-lacp-header']['aggregate-name']} is not an expected aggregation group"   
-                output=result[l['lag-lacp-header']['aggregate-name']]['message']
-                print('FAILURE: ' + output)
-                with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                    result_file.write (time.asctime() + " " + output + '\n')
-
-    def validate_alarms(self):
+                # output=result[l['lag-lacp-header']['aggregate-name']]['status']+\
+                #        result[l['lag-lacp-header']['aggregate-name']]['message']
+                # print(output)
+                table.add_row([time.asctime(),
+                                result[l['lag-lacp-header']['aggregate-name']]['status'],
+                                result[l['lag-lacp-header']['aggregate-name']]['message']])
+                with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                    result_file.write (table.get_string())
+        return table
+    def validate_alarms(self,table):
         output=self.ssh_connection.send_command("show chassis alarms | display xml")
         structured_output=xmltodict.parse(output)
         result={}
         alarm_list=[]
         alarms=structured_output['rpc-reply']['alarm-information']
         if "no-active-alarms" in alarms['alarm-summary'].keys():
-            result['status']='sucess'
+            result['status']='SUCCESS: '
             result['message']='There is no active alarm on the device'
-            output=result['message']
-            print('SUCCESS: ' + output )
-            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                result_file.write (time.asctime() + " " + output + '\n')
+            # output=result['status']+result['message']
+            # print(output )
+            table.add_row([time.asctime(),result['status'],result['message']])
+            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                result_file.write(table.get_string())
         else:
             for detail in alarms['alarm-detail']:
                 alarm_list.append(detail["alarm-description"])
 
-            result['status']='failure'
+            result['status']='FAILURE: '
             result['message']=f'Please check alarms {alarm_list}'
-            output=result['message']
-            print('FAILURE: ' + output )
-            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                result_file.write (time.asctime() + " " + output + '\n')
-    
-    def validate_chasis_env(self):
+            # output=result['status']+result['message']
+            # print(output)
+            table.add_row([[time.asctime(),result['status'],result['message']]])
+            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                result_file.write (table.get_string())
+        return table
+    def validate_chasis_env(self,table):
         output=self.ssh_connection.send_command("show chassis environment | display xml")       
         structured_output=xmltodict.parse(output)
         items=structured_output['rpc-reply']['environment-information']['environment-item']
@@ -1592,20 +1623,23 @@ class ToR():
         for item in items:
             result[item['name']]={}
             if item['status']=="OK":
-                result[item['name']]['status']='success'
+                result[item['name']]['status']='SUCCESS: '
                 result[item['name']]['message']=f'{item["name"]} status is OK'
-                output=result[item['name']]['message']
-                print('SUCCESS: ' + output )
-                with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                    result_file.write (time.asctime() + " " + output + '\n')
+                # output=result[item['name']]['status']+result[item['name']]['message']
+                # print(output)
+                table.add_row([time.asctime(),result[item['name']]['status'],result[item['name']]['message']])
+                with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                    result_file.write (table.get_string())
             else:
-                result[item['name']]['status']='failure'
+                result[item['name']]['status']='FAILURE: '
                 result[item['name']]['message']=f'Plese check {item["name"]}. Status is {item["status"]}'
-                print('SUCCESS: ' + output )
-                with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                    result_file.write (time.asctime() + " " + output + '\n')
-
-    def validate_virtaul_chasis(self):
+                # output=result[item['name']]['status']+result[item['name']]['message']
+                # print(output )
+                table.add_row([time.asctime(),result[item['name']]['status'],result[item['name']]['message']])
+                with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                    result_file.write (table.get_string())
+        return table
+    def validate_virtaul_chasis(self,table):
         output=self.ssh_connection.send_command("show virtual-chassis status | display xml")       
         structured_output=xmltodict.parse(output)
         vc_info=structured_output['rpc-reply']['virtual-chassis-information']['preprovisioned-virtual-chassis-information']['virtual-chassis-mode']
@@ -1620,31 +1654,38 @@ class ToR():
         if vc_info == 'Enabled':
             if number_of_members==2:
                 if number_of_vcp_links==4:
-                    result['status']='success'
+                    result['status']='SUCCESS: '
                     result['message']='VC is enabled and has 2 members and total 4 vcp links'
-                    output=result['message']
-                    print('SUCCESS: '+ output)
-                    with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                        result_file.write (time.asctime() + " " + output + '\n')
+                    # output=result['status']+result['message']
+                    # print(output)
+                    table.add_row([time.asctime(),result['status'],result['message']])
+                    with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                        result_file.write (table.get_string())
                 else:
-                    result['status']='failure'
+                    result['status']='FAILURE: '
                     result['message']=f'VC is enabled and but total number of vcp links is {number_of_vcp_links}'
-                    print('FAILURE: '+ output)
-                    with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                        result_file.write (time.asctime() + " " + output + '\n')
+                    # output=result['status']+result['message']
+                    # print(output)
+                    table.add_row([time.asctime(),result['status'],result['message']])
+                    with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                        result_file.write (table.get_string())
             else:
-                result['status']='failure'
+                result['status']='FAILURE: '
                 result['message']=f'VC is enabled and but number of members is {number_of_members}'
-                print('FAILURE: '+ output)
-                with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                    result_file.write (time.asctime() + " " + output + '\n')
+                # output=result['status']+result['message']
+                # print( output)
+                table.add_row([time.asctime(),result['status'],result['message']])
+                with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                    result_file.write (table.get_string())
         else:
-            result['status']='failure'
+            result['status']='FAILURE: '
             result['message']=f'VC is not Enabled'
-            print('FAILURE: '+ output)
-            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results{self.tor_ip}-{self.name}.log', 'a') as result_file: 
-                result_file.write (time.asctime() + " " + output + '\n')
-
+            # output=result['status']+result['message']
+            # print(output)
+            table.add_row([time.asctime(),result['status'],result['message']])
+            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results{self.tor_ip}-{self.name}.log', 'w') as result_file: 
+                result_file.write (table.get_string())
+        return table
 
 class FireWall():
 
@@ -1661,7 +1702,7 @@ class FireWall():
         
         return net_connect
 
-    def validate_tunnels(self):
+    def validate_tunnels(self,table):
         url = f"https://{self.fw_ip}/api/v2/monitor/vpn/ipsec"        
         payload={}
         headers = {
@@ -1693,14 +1734,17 @@ class FireWall():
                 result["status"]='FAILURE: '
                 result["message"]=f'Tunnel {tunnel} is missing. Please check the FW configurations'
                 list_result.append(result)
-
         for result in list_result:
-            output=result["status"]+result["message"]
-            print(output)
-            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'a') as result_file: 
-                result_file.write (time.asctime() + " " + output + '\n')
-    
-    def validate_ha_peers(self):
+            # output=result["status"]+result["message"]
+            # print(output)
+            table.add_row([time.asctime(),result["status"],result["message"]])
+        # print(table)
+        # # print(table.get_string())
+        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'w') as result_file: 
+            result_file.write (table.get_string())
+        return table
+
+    def validate_ha_peers(self,table):
         url = f"https://{self.fw_ip}/api/v2/monitor/system/ha-peer"
         payload={}
         headers = {
@@ -1726,13 +1770,16 @@ class FireWall():
             else:
                 result["status"]="FAILURE: "
                 result["message"]=f"FW00 is not the primary firewall. Please check the priorities"
-
-        output=result["status"]+result["message"]
-        print(output)
-        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'a') as result_file: 
-            result_file.write (time.asctime() + " " + output + '\n')
-
-    def validate_ha_health(self):
+        table.add_row([time.asctime(),result["status"],result["message"]])
+        # # output=result["status"]+result["message"]
+        # print(output)
+        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'w') as result_file: 
+            result_file.write (table.get_string())
+        return table
+    
+    def validate_ha_health(self,table):
+        # import pdb
+        # pdb.set_trace()
         connection=self.ssh_connection(username=username, password=password)
         output=connection.send_command("get system ha status")
         lines = output.strip().split('\n')
@@ -1755,12 +1802,13 @@ class FireWall():
                 result['status']='SUCCESS: '
                 result["message"]="Firewall HA Health status is not OK and config is NOT in-sync."
 
-        output=result["status"]+result["message"]
-        print(output)
-        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'a') as result_file: 
-            result_file.write (time.asctime() + " " + output + '\n')
-            
-    def validate_bgp_sessions(self):
+        # output=result["status"]+result["message"]
+        # print(output)
+        table.add_row([time.asctime(),result["status"],result["message"]])
+        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'w') as result_file: 
+            result_file.write (table.get_string())
+        return table 
+    def validate_bgp_sessions(self,table):
         url = f"https://{self.fw_ip}/api/v2/monitor/router/ipv4?type=bgp"
         payload={}
         result={}
@@ -1775,37 +1823,42 @@ class FireWall():
         else:
             result['status']='FAILURE: '
             result['message']=f"Firewall has {len(response)} active connection. Please check firewall configurations"
+        
+        # output=result["status"]+result["message"]
+        # print(output)
+        table.add_row([time.asctime(),result["status"],result["message"]])
+        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'w') as result_file: 
+            result_file.write (table.get_string())
+        return table
 
-        output=result["status"]+result["message"]
-        print(output)
-        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'a') as result_file: 
-            result_file.write (time.asctime() + " " + output + '\n')
-
-    def validate_sim_card(self):
+    def validate_sim_card(self,table):
         connection=self.ssh_connection(username=username, password=password)
         output=connection.send_command("diagnose sys lte-modem sim-info")
         lines = output.strip().split('\n')
         sim_info={}
         result={}
-        for i in lines:
-            sim_info[i.split(':')[0].strip()]=i.split(':')[1].strip()
-        if "_PRESENT" in sim_info["SIM state"]:
-            if sim_info.get("Country") and sim_info.get("Network"):
-                result["status"]='SUCCESS: '
-                result["message"]=f'SIM card present and registered to {sim_info["Country"]} - {sim_info["Network"]}'
-            else:
-                result["status"]='FAILURE: '
-                result["message"]=f'SIM card present and but not registered to any network'
-        else:
+        if "Modem not detected" in output:
             result["status"]='FAILURE: '
-            result["message"]=f'SIM card is NOT PRESENT'
+            result["message"]=f'SIM card is NOT PRESENT'          
+        else:  
+            for i in lines:
+                sim_info[i.split(':')[0].strip()]=i.split(':')[1].strip()
+            if "_PRESENT" in sim_info["SIM state"]:
+                if sim_info.get("Country") and sim_info.get("Network"):
+                    result["status"]='SUCCESS: '
+                    result["message"]=f'SIM card present and registered to {sim_info["Country"]} - {sim_info["Network"]}'
+                else:
+                    result["status"]='FAILURE: '
+                    result["message"]=f'SIM card present and but not registered to any network'
         
-        output=result["status"]+result["message"]
-        print(output)
-        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'a') as result_file: 
-            result_file.write (time.asctime() + " " + output + '\n')
+        # output=result["status"]+result["message"]
+        # print(output)
+        table.add_row([time.asctime(),result["status"],result["message"]])
+        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'w') as result_file: 
+            result_file.write (table.get_string())
+        return table
     
-    def validate_wwan_interface(self):
+    def validate_wwan_interface(self,table):
         url = f"https://{self.fw_ip}/api/v2/monitor/system/interface"
         payload={}
         headers = {
@@ -1821,12 +1874,13 @@ class FireWall():
             result['status']='FAILURE: '
             result['message']='WWAN/ LTE interface is DOWN'
         
-        output=result["status"]+result["message"]
-        print(output)
-        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'a') as result_file: 
-            result_file.write (time.asctime() + " " + output + '\n')
-    
-    def validate_fw_policy(self):
+        # output=result["status"]+result["message"]
+        # print(output)
+        table.add_row([time.asctime(),result["status"],result["message"]])
+        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'w') as result_file: 
+            result_file.write (table.get_string())
+        return table
+    def validate_fw_policy(self,table):
         url = f"https://{self.fw_ip}/api/v2/cmdb/firewall/policy"
         payload={}
         headers = CaseInsensitiveDict()
@@ -1938,21 +1992,23 @@ class FireWall():
 
         for policy in missing_policy:
             result[policy]={}
-            result[response_elmt['policyid']]["status"]='FAILURE: '
-            result[response_elmt['policyid']]["message"]= f"Policy {policy} is missing in the Firewall configuration"
+            result[policy]["status"]='FAILURE: '
+            result[policy]["message"]= f"Policy {policy} is missing in the Firewall configuration"
 
         for id,value in result.items():
-            output=f'POLICY {id} - {value["status"]} {value["message"]}'
-            print(output)
-            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'a') as result_file: 
-                result_file.write (time.asctime() + " " + output + '\n')
-    
+            # output=f'POLICY {id} - {value.get("status")} {value.get("message")}'
+            table.add_row([time.asctime(),value["status"],value["message"]])
+            # print(output)
+        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log', 'w') as result_file: 
+            result_file.write (table.get_string())
+        return table
+
 class TerminalServer():
     def __init__(self,ts_ip,name) -> None:
         self.ts_ip=ts_ip
         self.name=name
 
-    def validate_port_mapping(self,site_id,terminal_server):
+    def validate_port_mapping(self,table,site_id,terminal_server):
         remote_conn_pre = paramiko.SSHClient()
         remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         remote_conn_pre.connect(f"{self.ts_ip}",username=username,password=password)
@@ -1983,16 +2039,17 @@ class TerminalServer():
                 results.append(copy.deepcopy(result))
 
         for result in results:
-            output=result["status"]+result["message"]
-            print(output)
-            with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.ts_ip}-{self.name}.log', 'a') as result_file: 
-                result_file.write (time.asctime() + " " + output + '\n')
-    
+            # output=result["status"]+result["message"]
+            # print(output)
+            table.add_row([time.asctime(),result["status"],result["message"]])
+        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.ts_ip}-{self.name}.log', 'w') as result_file: 
+            result_file.write(table.get_string())
+        return table
 class Pdu():
     def __init__(self,pdu_ip,name) -> None:
         self.pdu_ip=pdu_ip
         self.name=name
-    def validate_outlet_mapping(self,site_id,name):
+    def validate_outlet_mapping(self,site_id,name,table):
         commands={"Schneider": 'olName all\n',
          "Sentry": 'list outlets\n'}
         # name="pdu00.chi00"
@@ -2041,21 +2098,22 @@ class Pdu():
         outlets = re.findall(pattern, output)
         if outlets==compare[pdu_code]:
             result["status"]='SUCCESS: '
-            result['message']="PDU outlet naming is as expected"
+            result['message']=f"{self.name.split('.')[0].upper()} outlet naming is as expected"
         else:
             missing_outlet_map=[item for item in compare[pdu_code] if item not in outlets]
             if missing_outlet_map:
                 result['status']='FAILURE: '
-                result['message']=f"{missing_outlet_map} are missing in the PDU configuration"
+                result['message']=f"{missing_outlet_map} are missing in the {self.name.split('.')[0].upper()} configuration"
             else:
                 result['status']='FAILURE: '
-                result['message']="All outlets are configured but mapping is not correct."
+                result['message']=f"All outlets are configured but mapping is not correct for {self.name.split('.')[0].upper()}."
         
-        output=result['status']+result['message']
-        print(output)
-        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.pdu_ip}-{self.name}.log', 'a') as result_file: 
-            result_file.write (time.asctime() + " " + output + '\n')
-
+        # output=result['status']+result['message']
+        table.add_row([time.asctime(),result['status'],result['message']])
+        # print(output)
+        with open(f'/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.pdu_ip}-{self.name}.log', 'w') as result_file: 
+            result_file.write(table.get_string())
+        return table
 def upload_results_to_S3(filename, bucket, object_name=None):
     """Upload a file to an S3 bucket
     :param file_name: File to upload
