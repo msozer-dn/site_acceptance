@@ -82,6 +82,15 @@ AWS_ACCESS_SECRET = os.environ.get("AWS_ACCESS_SECRET")
 
 
 def get_secret(fw_name):
+    """
+    The function `get_secret` retrieves secret values from AWS Secrets Manager and sets environment
+    variables for specific tokens.
+
+    :param fw_name: The `fw_name` parameter is a string that represents the name of the firewall for
+    which you want to retrieve the token from the Secrets Manager
+    :return: The function `get_secret` returns a dictionary `token_check` which contains information
+    about the availability of various tokens in the Secrets Manager.
+    """
     secret_name = "site_acceptance_secrets"
     region_name = "us-east-1"
     # Create a Secrets Manager client
@@ -153,6 +162,8 @@ def get_secret(fw_name):
     return token_check
 
 
+# The `ServiceNode` class represents a service node with an IP address, a connection, an SSH
+# connection, and a name.
 class ServiceNode:
     def __init__(self, node_ip, name) -> None:
         self.node_ip = node_ip
@@ -238,6 +249,16 @@ class ServiceNode:
                 result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_cluster_type(self, expected_cluster_type: str = expected_cluster_type):
+        """
+        The function `validate_cluster_type` checks if the cluster type obtained from an RPC reply matches
+        the expected cluster type and logs the result.
+
+        :param expected_cluster_type: The parameter `expected_cluster_type` is a string that represents the
+        expected cluster type. It is used to compare with the actual cluster type obtained from the RPC
+        reply
+        :type expected_cluster_type: str
+        :return: a string indicating the result of the cluster type validation.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_cluster_version))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -263,6 +284,13 @@ class ServiceNode:
             result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_software(self, expected_system_version: str = expected_system_version):
+        """
+        The function `validate_software` validates the system version of a software and logs the result.
+
+        :param expected_system_version: The parameter `expected_system_version` is the version of the system
+        that you expect to validate against. It is a string that represents the expected system version
+        :type expected_system_version: str
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_cluster_version))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -285,6 +313,10 @@ class ServiceNode:
             result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncp_connectivity(self):
+        """
+        The function `validate_ncp_connectivity` retrieves NCP connectivity information from an RPC reply,
+        checks if each NCP is operational, and logs the results.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_ncp_connectivity))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -313,6 +345,10 @@ class ServiceNode:
                 result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncf_connectivity(self):
+        """
+        The function `validate_ncf_connectivity` retrieves NCF connectivity data from an XML response,
+        checks if each NCF is operational, and logs the results.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_ncf_connectivity))
         dicdata = xmltodict.parse(rpc_reply.xml)
 
@@ -342,6 +378,11 @@ class ServiceNode:
                 result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncc_connectivity(self):
+        """
+        The function `validate_ncc_connectivity` retrieves NCC connectivity data from an RPC reply, parses
+        it, and checks the operational status of each NCC, printing the results and writing them to a log
+        file.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_ncc_connectivity))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -372,6 +413,10 @@ class ServiceNode:
                 result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncm_connectivity(self):
+        """
+        The function `validate_ncm_connectivity` retrieves NCM connectivity information from a network
+        device and logs the operational status of each NCM.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_ncm_connectivity))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -400,6 +445,10 @@ class ServiceNode:
                 result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncs_connectivity(self):
+        """
+        The function `validate_ncs_connectivity` checks the state and operational status of the NCS (Network
+        Control System) and logs the result.
+        """
         output = self.ssh_connection.send_command("show system")
         spltoutput = output.split("|")
         # TODO: add try except block for NCS index
@@ -419,6 +468,12 @@ class ServiceNode:
             result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncp_fabric_connections(self):
+        """
+        The function `validate_ncp_fabric_connections` retrieves data from an XML response, checks if the
+        necessary keys are present, and then validates the number of fabric connections for each NCP.
+        :return: The code is returning a string that indicates whether the validation was successful or not
+        for each NCP (Network Control Processor) in the fabric connections.
+        """
         rpc_reply = self.connection.get(
             ("subtree", filters.filter_ncp_fabric_connection)
         )
@@ -467,6 +522,10 @@ class ServiceNode:
         #         result_file.write (time.asctime() + " " + result + '\n')
 
     def validate_ncp_active_lanes(self):
+        """
+        The function `validate_ncp_active_lanes` retrieves data from an XML response, checks for specific
+        keys, and prints and logs the active lanes information for each neighbor node.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_ncp_active_lanes))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -509,6 +568,10 @@ class ServiceNode:
         # parked
 
     def validate_control_connections(self):
+        """
+        The function `validate_control_connections` retrieves information about control connections from a
+        network device and compares the expected and actual neighbor interfaces, logging the results.
+        """
         interfaces = control_interfaces
 
         for interface in interfaces:
@@ -569,6 +632,10 @@ class ServiceNode:
                 result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_mgm_ip(self):
+        """
+        The function `validate_mgm_ip` retrieves management route information from a network device and
+        checks if the next hop is configured correctly.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_oob_mgmt))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -612,6 +679,10 @@ class ServiceNode:
                     result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_nce_psus(self):
+        """
+        The function `validate_nce_psus` retrieves information about power supply units (PSUs) from an XML
+        response and checks their status, logging the results.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_all_psu))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -723,6 +794,10 @@ class ServiceNode:
                     result_file.write(time.asctime() + " " + result + "\n")
 
     def check_control_links_from_shell(self):
+        """
+        The function `check_control_links_from_shell` checks the state of various network interfaces and
+        writes the results to a log file.
+        """
         self.ssh_connection._enter_shell(ncc=0)
         self.ssh_connection.send_command("access_host.sh")
         output_ctrl_ncc0 = self.ssh_connection.send_command("ip -c a | grep ctrl")

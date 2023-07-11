@@ -6,10 +6,14 @@ from pynautobot import api
 from prettytable import PrettyTable
 
 url = "https://sot.infra.drivenets.net"
-AWS_ACCESS_SECRET = (os.getenv("AWS_ACCESS_SECRET"),)
+AWS_ACCESS_SECRET = (os.getenv("AWS_ACCESS_SECRET"))
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
 
 
+# The `add_nautobot_tag` function is responsible for adding a tag to a device in Nautobot. It
+# prompts the user to confirm if they want to add a tag for a specific device, and if the user
+# confirms, it retrieves the device's current tags, adds a new tag called "test-prod", and updates
+# the device with the new tag.
 def add_nautobot_tag(nautobot_instance, device):
     add_tag = input(
         f"All checks are succesfull. Do you want to add a tag for {device.name} in Nautobot(Y/N):"
@@ -26,6 +30,15 @@ def add_nautobot_tag(nautobot_instance, device):
 
 
 def main():
+    """
+    The main function collects device information from Nautobot and performs various checks on different
+    types of devices such as service nodes, firewalls, top-of-rack switches, terminal servers, and power
+    distribution units.
+
+    :return: The code is returning the result of various checks and validations performed on different
+    devices. It prints the results in a tabular format using the PrettyTable library. If any failures
+    are detected during the checks, it adds a tag to the corresponding device in the Nautobot instance.
+    """
     parser = ArgumentParser(description="Usage:")
 
     # script arguments
