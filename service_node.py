@@ -81,7 +81,17 @@ AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
 AWS_ACCESS_SECRET = os.environ.get("AWS_ACCESS_SECRET")
 
 
+
 def get_secret(fw_name):
+    """
+    The function `get_secret` retrieves secret values from AWS Secrets Manager and sets environment
+    variables for specific tokens.
+    
+    :param fw_name: The `fw_name` parameter is a string that represents the name of the firewall for
+    which you want to retrieve the token from the Secrets Manager
+    :return: The function `get_secret` returns a dictionary `token_check` which contains information
+    about the availability of various tokens in the Secrets Manager.
+    """
     secret_name = "site_acceptance_secrets"
     region_name = "us-east-1"
     # Create a Secrets Manager client
@@ -153,6 +163,8 @@ def get_secret(fw_name):
     return token_check
 
 
+# The `ServiceNode` class represents a service node with an IP address, a connection, an SSH
+# connection, and a name.
 class ServiceNode:
     def __init__(self, node_ip, name) -> None:
         self.node_ip = node_ip
@@ -238,6 +250,16 @@ class ServiceNode:
                 result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_cluster_type(self, expected_cluster_type: str = expected_cluster_type):
+        """
+        The function `validate_cluster_type` checks if the cluster type obtained from an RPC reply matches
+        the expected cluster type and logs the result.
+        
+        :param expected_cluster_type: The parameter `expected_cluster_type` is a string that represents the
+        expected cluster type. It is used to compare with the actual cluster type obtained from the RPC
+        reply
+        :type expected_cluster_type: str
+        :return: a string indicating the result of the cluster type validation.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_cluster_version))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -263,6 +285,13 @@ class ServiceNode:
             result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_software(self, expected_system_version: str = expected_system_version):
+        """
+        The function `validate_software` validates the system version of a software and logs the result.
+        
+        :param expected_system_version: The parameter `expected_system_version` is the version of the system
+        that you expect to validate against. It is a string that represents the expected system version
+        :type expected_system_version: str
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_cluster_version))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -285,6 +314,10 @@ class ServiceNode:
             result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncp_connectivity(self):
+        """
+        The function `validate_ncp_connectivity` retrieves NCP connectivity information from an RPC reply,
+        checks if each NCP is operational, and logs the results.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_ncp_connectivity))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -313,6 +346,10 @@ class ServiceNode:
                 result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncf_connectivity(self):
+        """
+        The function `validate_ncf_connectivity` retrieves NCF connectivity data from an XML response,
+        checks if each NCF is operational, and logs the results.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_ncf_connectivity))
         dicdata = xmltodict.parse(rpc_reply.xml)
 
@@ -342,6 +379,11 @@ class ServiceNode:
                 result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncc_connectivity(self):
+        """
+        The function `validate_ncc_connectivity` retrieves NCC connectivity data from an RPC reply, parses
+        it, and checks the operational status of each NCC, printing the results and writing them to a log
+        file.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_ncc_connectivity))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
