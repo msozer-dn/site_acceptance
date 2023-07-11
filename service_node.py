@@ -81,11 +81,16 @@ AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
 AWS_ACCESS_SECRET = os.environ.get("AWS_ACCESS_SECRET")
 
 
+
 def get_secret(fw_name):
     """
     The function `get_secret` retrieves secret values from AWS Secrets Manager and sets environment
     variables for specific tokens.
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> refs/remotes/origin/main
     :param fw_name: The `fw_name` parameter is a string that represents the name of the firewall for
     which you want to retrieve the token from the Secrets Manager
     :return: The function `get_secret` returns a dictionary `token_check` which contains information
@@ -252,7 +257,7 @@ class ServiceNode:
         """
         The function `validate_cluster_type` checks if the cluster type obtained from an RPC reply matches
         the expected cluster type and logs the result.
-
+        
         :param expected_cluster_type: The parameter `expected_cluster_type` is a string that represents the
         expected cluster type. It is used to compare with the actual cluster type obtained from the RPC
         reply
@@ -286,7 +291,7 @@ class ServiceNode:
     def validate_software(self, expected_system_version: str = expected_system_version):
         """
         The function `validate_software` validates the system version of a software and logs the result.
-
+        
         :param expected_system_version: The parameter `expected_system_version` is the version of the system
         that you expect to validate against. It is a string that represents the expected system version
         :type expected_system_version: str
@@ -923,6 +928,10 @@ class ServiceNode:
                 result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncp_fan(self):
+        """
+        The function `validate_ncp_fan` retrieves fan data from a network device and checks the status and
+        presence of each fan, logging the results to a file.
+        """
         rpc_reply = self.connection.get(("subtree", filters.filter_ncp_fan))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -1009,6 +1018,11 @@ class ServiceNode:
                     result_file.write(time.asctime() + " " + result + "\n")
 
     def validate_ncf_fan(self):
+        # The below code is retrieving fan status information from an XML response received through an RPC
+        # call. It parses the XML response using the xmltodict library and extracts the necessary data. It
+        # then iterates over the fan data and checks the status and presence of each fan. Based on the status
+        # and presence, it generates a result message and prints it to the console. It also appends the result
+        # message to a log file.
         rpc_reply = self.connection.get(("subtree", filters.filter_ncf_fan))
         dicdata = xmltodict.parse(rpc_reply.xml)
         try:
@@ -2125,6 +2139,16 @@ class ServiceNode:
 
 
 class ToR:
+    """
+    The `__init__` function initializes an object with a Tor IP address, establishes an SSH
+    connection, and assigns a name to the object.
+    
+    :param tor_ip: The `tor_ip` parameter is the IP address of the Tor network that you want
+    to connect to. Tor is a network that allows users to browse the internet anonymously by
+    routing their internet traffic through a series of relays
+    :param name: The `name` parameter is a string that represents the name of the object being
+    initialized. It is used to assign a value to the `name` attribute of the object
+    """
     def __init__(self, tor_ip, name) -> None:
         self.tor_ip = tor_ip
         self.ssh_connection = self.__ssh_connection()
@@ -2141,6 +2165,10 @@ class ToR:
         return net_connect
 
     def collect_tor_chasis_info(self):
+        # The below code is making an SSH connection and sending a command to retrieve the hardware
+        # information of a chassis. The command "show chassis hardware | display xml" is sent and the output
+        # is stored in the variable "output". The output is then parsed using the xmltodict library to convert
+        # it into a structured format. Finally, the structured output is printed.
         output = self.ssh_connection.send_command("show chassis hardware | display xml")
         structured_output = xmltodict.parse(output)
         print(structured_output)
@@ -2150,6 +2178,17 @@ class ToR:
         table,
         site_id,
     ):
+        """
+        The function `validate_lldp_info` validates the LLDP information by comparing it with a mapping and
+        generates a table with the results.
+        
+        :param table: The `table` parameter is an object of a table class that is used to store and display
+        the results of the validation process. It is used to add rows to the table with information about
+        the status and message of each validation check
+        :param site_id: The `site_id` parameter is used to identify the site for which the LLDP information
+        is being validated. It is passed as an argument to the `validate_lldp_info` method
+        :return: the `table` object.
+        """
         output = self.ssh_connection.send_command("show lldp neighbors | display xml")
         structured_output = xmltodict.parse(output)
         lldp = structured_output["rpc-reply"]["lldp-neighbors-information"][
@@ -2247,6 +2286,9 @@ class ToR:
         return table
 
     def validate_lacp(self, table):
+        # The below code is parsing XML output from an SSH command and extracting specific information related
+        # to LACP (Link Aggregation Control Protocol) interfaces. It then checks if the interfaces are in the
+        # expected state and aggregates the results into a table. The table is then written to a log file.
         output = self.ssh_connection.send_command("show lacp interfaces | display xml")
         structured_output = xmltodict.parse(output)
         lacp = structured_output["rpc-reply"]["lacp-interface-information-list"][
@@ -2468,6 +2510,9 @@ class ToR:
         return table
 
     def validate_alarms(self, table):
+        # The below code is a Python function that retrieves alarm information from a network device using
+        # SSH. It sends a command to the device to display the alarms in XML format, then parses the XML
+        # response using the `xmltodict` library.
         output = self.ssh_connection.send_command("show chassis alarms | display xml")
         structured_output = xmltodict.parse(output)
         result = {}
@@ -2501,6 +2546,11 @@ class ToR:
         return table
 
     def validate_chasis_env(self, table):
+        # The below code is retrieving the output of a command executed on an SSH connection, parsing the
+        # output as XML, and then processing the structured output. It creates a dictionary called `result` to
+        # store the status and message for each item in the output. If the status of an item is "OK", it adds
+        # a success message to the `result` dictionary. If the status is not "OK", it adds a failure message.
+        # It also writes the results to a log file. Finally, it returns a table containing the results.
         output = self.ssh_connection.send_command(
             "show chassis environment | display xml"
         )
@@ -2550,6 +2600,9 @@ class ToR:
         return table
 
     def validate_virtaul_chasis(self, table):
+        # The below code is checking the status of a virtual chassis (VC) in a network device. It connects to
+        # the device using SSH and sends a command to retrieve the virtual chassis status in XML format. The
+        # XML response is then parsed using the `xmltodict` library.
         output = self.ssh_connection.send_command(
             "show virtual-chassis status | display xml"
         )
