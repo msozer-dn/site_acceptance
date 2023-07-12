@@ -81,16 +81,10 @@ AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
 AWS_ACCESS_SECRET = os.environ.get("AWS_ACCESS_SECRET")
 
 
-
 def get_secret(fw_name):
     """
     The function `get_secret` retrieves secret values from AWS Secrets Manager and sets environment
     variables for specific tokens.
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> refs/remotes/origin/main
     :param fw_name: The `fw_name` parameter is a string that represents the name of the firewall for
     which you want to retrieve the token from the Secrets Manager
     :return: The function `get_secret` returns a dictionary `token_check` which contains information
@@ -257,7 +251,7 @@ class ServiceNode:
         """
         The function `validate_cluster_type` checks if the cluster type obtained from an RPC reply matches
         the expected cluster type and logs the result.
-        
+
         :param expected_cluster_type: The parameter `expected_cluster_type` is a string that represents the
         expected cluster type. It is used to compare with the actual cluster type obtained from the RPC
         reply
@@ -291,7 +285,7 @@ class ServiceNode:
     def validate_software(self, expected_system_version: str = expected_system_version):
         """
         The function `validate_software` validates the system version of a software and logs the result.
-        
+
         :param expected_system_version: The parameter `expected_system_version` is the version of the system
         that you expect to validate against. It is a string that represents the expected system version
         :type expected_system_version: str
@@ -1964,7 +1958,6 @@ class ServiceNode:
         rpc_reply = self.connection.get(
             ("subtree", filters.filter_vrf_route_summary_vADI)
         )
-        # return rpc_reply
         dicdata = xmltodict.parse(rpc_reply.xml)
         result = {}
         try:
@@ -2142,13 +2135,14 @@ class ToR:
     """
     The `__init__` function initializes an object with a Tor IP address, establishes an SSH
     connection, and assigns a name to the object.
-    
+
     :param tor_ip: The `tor_ip` parameter is the IP address of the Tor network that you want
     to connect to. Tor is a network that allows users to browse the internet anonymously by
     routing their internet traffic through a series of relays
     :param name: The `name` parameter is a string that represents the name of the object being
     initialized. It is used to assign a value to the `name` attribute of the object
     """
+
     def __init__(self, tor_ip, name) -> None:
         self.tor_ip = tor_ip
         self.ssh_connection = self.__ssh_connection()
@@ -2181,7 +2175,7 @@ class ToR:
         """
         The function `validate_lldp_info` validates the LLDP information by comparing it with a mapping and
         generates a table with the results.
-        
+
         :param table: The `table` parameter is an object of a table class that is used to store and display
         the results of the validation process. It is used to add rows to the table with information about
         the status and message of each validation check
@@ -2207,7 +2201,7 @@ class ToR:
                         f'Tor to FW connection for interface {interface["lldp-local-port-id"]} '
                         f'is to {interface["lldp-remote-system-name"]} as expeceted'
                     )
-                    # output=result[interface['lldp-local-port-id']]['status']+ result[interface['lldp-local-port-id']]['message']
+
                     table.add_row(
                         [
                             time.asctime(),
@@ -2227,7 +2221,7 @@ class ToR:
                         f'is to {interface["lldp-remote-system-name"]} which is not expeceted.'
                         "Please check the cabling between ToR and FW"
                     )
-                    # output=result[interface['lldp-local-port-id']]['status']+ result[interface['lldp-local-port-id']]['message']
+
                     table.add_row(
                         [
                             time.asctime(),
@@ -2248,7 +2242,7 @@ class ToR:
                 result[tor_interface][
                     "message"
                 ] = f"{tor_interface} is not conneted to the FW. Please check cabling"
-                # output=result[interface['lldp-local-port-id']]['status']+ result[interface['lldp-local-port-id']]['message']
+
                 table.add_row(
                     [
                         time.asctime(),
@@ -2269,7 +2263,7 @@ class ToR:
             result["ToR to FW connections"][
                 "message"
             ] = f"Tor to FW is not completed on expected interfaces. Please check the cabling between ToR and FW"
-            # output=result[interface['lldp-local-port-id']]['status']+ result[interface['lldp-local-port-id']]['message']
+
             table.add_row(
                 [
                     time.asctime(),
@@ -2313,8 +2307,7 @@ class ToR:
                                 f"Interface {interface['name']} is in {interface['lacp-mux-state']}"
                                 f"and member of {l['lag-lacp-header']['aggregate-name']} "
                             )
-                            # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+ \
-                            #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
+
                             table.add_row(
                                 [
                                     time.asctime(),
@@ -2326,7 +2319,7 @@ class ToR:
                                     ]["message"],
                                 ]
                             )
-                            # print(output)
+
                             with open(
                                 f"/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log",
                                 "w",
@@ -2342,8 +2335,6 @@ class ToR:
                                 f"Interface {interface['name']} is  member of {l['lag-lacp-header']['aggregate-name']}"
                                 f"but it is in {interface['lacp-mux-state']} which is not expected"
                             )
-                            # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+\
-                            #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
                             table.add_row(
                                 time.asctime(),
                                 result[l["lag-lacp-header"]["aggregate-name"]][
@@ -2353,7 +2344,7 @@ class ToR:
                                     interface["name"]
                                 ]["message"],
                             )
-                            # print(output)
+
                             with open(
                                 f"/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.tor_ip}-{self.name}.log",
                                 "w",
@@ -2372,8 +2363,7 @@ class ToR:
                             f"Interface {interface['name']} is  member of {l['lag-lacp-header']['aggregate-name']}"
                             " which is not one of the expected members"
                         )
-                        # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+\
-                        #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
+
                         table.add_row(
                             time.asctime(),
                             result[l["lag-lacp-header"]["aggregate-name"]][
@@ -2406,9 +2396,6 @@ class ToR:
                                 f"Interface {interface['name']} is in {interface['lacp-mux-state']}"
                                 f"and member of {l['lag-lacp-header']['aggregate-name']} "
                             )
-                            # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+\
-                            #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
-                            # print(output)
                             table.add_row(
                                 [
                                     time.asctime(),
@@ -2435,9 +2422,6 @@ class ToR:
                                 f"Interface {interface['name']} is  member of {l['lag-lacp-header']['aggregate-name']}"
                                 f"but it is in {interface['lacp-mux-state']} which is not expected"
                             )
-                            # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+\
-                            #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
-                            # print(output)
                             table.add_row(
                                 [
                                     time.asctime(),
@@ -2466,9 +2450,6 @@ class ToR:
                         ][
                             "message"
                         ] = f"Interface {interface['name']} is  member of {l['lag-lacp-header']['aggregate-name']}"
-                        # output=result[l['lag-lacp-header']['aggregate-name']][interface['name']]['status']+\
-                        #        result[l['lag-lacp-header']['aggregate-name']][interface['name']]['message']
-                        # print(output)
                         table.add_row(
                             [
                                 time.asctime(),
@@ -2492,9 +2473,6 @@ class ToR:
                 result[l["lag-lacp-header"]["aggregate-name"]][
                     "message"
                 ] = f"{l['lag-lacp-header']['aggregate-name']} is not an expected aggregation group"
-                # output=result[l['lag-lacp-header']['aggregate-name']]['status']+\
-                #        result[l['lag-lacp-header']['aggregate-name']]['message']
-                # print(output)
                 table.add_row(
                     [
                         time.asctime(),
@@ -2681,6 +2659,13 @@ class ToR:
 
 class FireWall:
     def __init__(self, fw_ip, name) -> None:
+        """
+        The above function is a constructor that initializes the `fw_ip` and `name` attributes of an object.
+
+        :param fw_ip: The `fw_ip` parameter is used to store the IP address of a firewall device
+        :param name: The `name` parameter is a string that represents the name of an object or entity. It is
+        used to identify and differentiate between different instances of the class
+        """
         self.fw_ip = fw_ip
         self.name = name
 
@@ -2695,6 +2680,12 @@ class FireWall:
         return net_connect
 
     def validate_tunnels(self, table):
+        # The below code is making a GET request to a specified URL to retrieve information about VPN IPsec
+        # tunnels. It then processes the response to check the status of each tunnel and generates a result
+        # for each tunnel. If a tunnel is up, it adds a success message to the result. If a tunnel is down, it
+        # adds a failure message to the result. It also checks for any missing tunnels that were expected but
+        # not found in the response. Finally, it writes the results to a log file and returns a table
+        # containing the results.
         url = f"https://{self.fw_ip}/api/v2/monitor/vpn/ipsec"
         payload = {}
         headers = {"Authorization": f"Bearer {FW_TOKEN}"}
@@ -2750,6 +2741,10 @@ class FireWall:
         return table
 
     def validate_ha_peers(self, table):
+        # The below code is making a GET request to a specified URL to retrieve information about the high
+        # availability (HA) peers in a firewall system. It then checks if there are exactly 2 firewalls in the
+        # HA group. If not, it sets the status as "FAILURE" and provides a message indicating that the FW
+        # configurations need to be checked.
         url = f"https://{self.fw_ip}/api/v2/monitor/system/ha-peer"
         payload = {}
         headers = {"Authorization": f"Bearer {FW_TOKEN}"}
@@ -2790,8 +2785,9 @@ class FireWall:
         return table
 
     def validate_ha_health(self, table):
-        # import pdb
-        # pdb.set_trace()
+        # The below code is a Python function that connects to a remote server using SSH, retrieves the output
+        # of a command, and then processes the output to determine the status of a firewall's high
+        # availability (HA) configuration.
         connection = self.ssh_connection(username=username, password=password)
         output = connection.send_command("get system ha status")
         lines = output.strip().split("\n")
@@ -2824,8 +2820,6 @@ class FireWall:
                     "message"
                 ] = "Firewall HA Health status is not OK and config is NOT in-sync."
 
-        # output=result["status"]+result["message"]
-        # print(output)
         table.add_row([time.asctime(), result["status"], result["message"]])
         with open(
             f"/Users/muhammedsozer/Documents/AcceptanceAutomation/results/results-{self.fw_ip}-{self.name}.log",
@@ -2835,6 +2829,11 @@ class FireWall:
         return table
 
     def validate_bgp_sessions(self, table):
+        # The below code is making a GET request to a specified URL to retrieve information about BGP sessions
+        # on a firewall. It then checks the response to determine the number of active BGP sessions. If there
+        # are 5 active sessions, it sets the result status as "SUCCESS" and the message as "Firewall has 5
+        # active BGP sessions". Otherwise, it sets the result status as "FAILURE" and the message as "Firewall
+        # has [number of active sessions] active connections. Please check firewall configurations".
         url = f"https://{self.fw_ip}/api/v2/monitor/router/ipv4?type=bgp"
         payload = {}
         result = {}
@@ -2897,6 +2896,11 @@ class FireWall:
         return table
 
     def validate_wwan_interface(self, table):
+        # The below code is making a GET request to a specified URL to retrieve information about the system
+        # interfaces. It uses an authorization token in the headers for authentication. The response is then
+        # parsed and checked to determine the status of the WWAN/LTE interface. If the interface is UP, a
+        # success message is set in the result dictionary. Otherwise, a failure message is set. The result is
+        # then added to a table and written to a log file. Finally, the table is returned.
         url = f"https://{self.fw_ip}/api/v2/monitor/system/interface"
         payload = {}
         headers = {"Authorization": f"Bearer {FW_TOKEN}"}
@@ -2923,6 +2927,9 @@ class FireWall:
         return table
 
     def validate_fw_policy(self, table):
+        # This function get the latest fw policy from github and converts it to a dictionary. Then get the FW policy from device
+        # and compare it with the expected FW policy. Code will list if there are different items in the configured policy
+        # or if any policy item missing or unexpected
         url = f"https://{self.fw_ip}/api/v2/cmdb/firewall/policy"
         payload = {}
         headers = CaseInsensitiveDict()
@@ -3068,6 +3075,8 @@ class TerminalServer:
         self.name = name
 
     def validate_port_mapping(self, table, site_id, terminal_server):
+        # The below code collects the port mapping for TS and compare them with some predefined mappings which defined in remote installation guide.
+        # Results will be recorded in table format.
         remote_conn_pre = paramiko.SSHClient()
         remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         remote_conn_pre.connect(f"{self.ts_ip}", username=username, password=password)
@@ -3146,6 +3155,8 @@ class Pdu:
         self.name = name
 
     def validate_outlet_mapping(self, site_id, name, table):
+        # The below code collects the port mapping for pdu and compare them with some predefined mappings which defined in remote installation guide.
+        # Results will be recorded in table format.
         commands = {"Schneider": "olName all\n", "Sentry": "list outlets\n"}
         # name="pdu00.chi00"
         # site_id="chi00"
